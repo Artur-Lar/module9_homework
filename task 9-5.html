@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Запрос на странице Picsum</h1>
+    <label for="page-input">Номер страницы:</label>
+    <input type="text" id="page-input" />
+    <br />
+    <label for="limit-input">Лимит:</label>
+    <input type="text" id="limit-input" />
+    <br />
+    <button id="request-btn">Запрос</button>
+    <br />
+    <p id="result"></p>
+    <script>
+      const pageInput = document.getElementById("page-input");
+      const limitInput = document.getElementById("limit-input");
+      const requestBtn = document.getElementById("request-btn");
+      const resultDiv = document.getElementById("result");
+
+      requestBtn.addEventListener("click", () => {
+        const page = parseInt(pageInput.value);
+        const limit = parseInt(limitInput.value);
+        let errorMsg = "";
+
+        if (isNaN(page) || page < 1 || page > 10) {
+          errorMsg += "Номер страницы вне диапазона от 1 до 10\n";
+        }
+
+        if (isNaN(limit) || limit < 1 || limit > 10) {
+          errorMsg += "Лимит вне диапазона от 1 до 10\n";
+        }
+
+        if (errorMsg) {
+          resultDiv.textContent = errorMsg;
+          return;
+        }
+
+        const url = `https://picsum.photos/v2/list?page=${page}&limit=${limit}`;
+
+        fetch(url)
+          .then((response) => response.json())
+          .then((data) => {
+            localStorage.setItem("lastRequestData", JSON.stringify(data));
+            resultDiv.innerHTML = "";
+            data.forEach((item) => {
+              const img = document.createElement("img");
+              img.src = item.download_url;
+              resultDiv.appendChild(img);
+            });
+          })
+          .catch((error) => {
+            console.error(error);
+            resultDiv.textContent = "Ошибка загрузки данных";
+          });
+      });
+
+      const lastRequestData = JSON.parse(
+        localStorage.getItem("lastRequestData")
+      );
+      if (lastRequestData) {
+        lastRequestData.forEach((item) => {
+          const img = document.createElement("img");
+          img.src = item.download_url;
+          resultDiv.appendChild(img);
+          setTimeout(() => {
+            resultDiv.removeChild(img);
+          }, 5000);
+        });
+      }
+    </script>
+  </body>
+</html>
